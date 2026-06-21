@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>克</title>
+
+  <style>
+    :root {
+      --text: rgba(240, 247, 255, 0.96);
+      --soft: rgba(222, 236, 255, 0.68);
+      --faint: rgba(222, 236, 255, 0.42);
+      --glass: rgba(255, 255, 255, 0.105);
+      --glass-2: rgba(255, 255, 255, 0.075);
+      --line: rgba(255, 255, 255, 0.16);
+      --line-soft: rgba(255, 255, 255, 0.09);
+      --blue: rgba(84, 160, 255, 0.9);
+      --blue-soft: rgba(84, 160, 255, 0.3);
+      --danger: rgba(255, 120, 145, 0.9);
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #020711;
+      color: var(--text);
+      font-family: var(--font);
+    }
+
+    body {
+      position: fixed;
+      inset: 0;
+      overscroll-behavior: none;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font-family: inherit;
+    }
+
+    button {
+      border: 0;
+      outline: 0;
+      cursor: pointer;
+    }
+
+    #app {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      isolation: isolate;
+      background: #020711;
+    }
+
+    /* 背景 */
+    .bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 28%, rgba(88, 158, 255, 0.26) 0%, rgba(88, 158, 255, 0.08) 26%, transparent 52%),
+        radial-gradient(circle at 18% 12%, rgba(90, 180, 255, 0.12), transparent 34%),
+        radial-gradient(circle at 82% 78%, rgba(38, 94, 190, 0.18), transparent 36%),
+        linear-gradient(180deg, #07172f 0%, #020711 56%, #00040b 100%);
+    }
+
+    .bg::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: 0.5;
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,0.42) 0 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(130,190,255,0.28) 0 1px, transparent 1.7px);
+      background-size: 82px 82px, 137px 137px;
+      background-position: 10px 20px, 50px 70px;
+      mask-image: radial-gradient(circle at 50% 35%, black 0%, transparent 68%);
+    }
+
+    .bg::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.18) 48%, rgba(0, 0, 0, 0.72) 100%);
+    }
+
+    .wallpaper-img {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background-size: cover;
+      background-position: center;
+      opacity: 0.36;
+      filter: saturate(0.9) brightness(0.78);
+      pointer-events: none;
+      display: none;
+    }
+
+    .star-core {
+      position: absolute;
+      top: 29%;
+      left: 50%;
+      width: 9px;
+      height: 9px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: #fff;
+      z-index: 1;
+      pointer-events: none;
+      box-shadow:
+        0 0 12px rgba(255,255,255,0.95),
+        0 0 36px rgba(88,160,255,0.85),
+        0 0 96px rgba(72,140,255,0.45),
+        0 0 180px rgba(35,90,210,0.28);
+    }
+
+    .star-core::before,
+    .star-core::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.96), transparent);
+      filter: blur(0.2px);
+      opacity: 0.95;
+    }
+
+    .star-core::before {
+      width: 86px;
+      height: 1px;
+    }
+
+    .star-core::after {
+      width: 1px;
+      height: 86px;
+      background: linear-gradient(180deg, transparent, rgba(255,255,255,0.96), transparent);
+    }
+
+    /* 顶栏 */
+    .topbar {
+      position: relative;
+      z-index: 4;
+      flex: 0 0 auto;
+      height: calc(64px + env(safe-area-inset-top));
+      padding-top: env(safe-area-inset-top);
+      padding-left: 18px;
+      padding-right: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .avatar-btn {
+      position: absolute;
+      left: 18px;
+      top: calc(14px + env(safe-area-inset-top));
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      padding: 0;
+      background:
+        linear-gradient(145deg, rgba(255,255,255,0.24), rgba(255,255,255,0.06));
+      border: 1px solid rgba(255,255,255,0.24);
+      backdrop-filter: blur(22px) saturate(170%);
+      -webkit-backdrop-filter: blur(22px) saturate(170%);
+      box-shadow:
+        inset 0 1px 1px rgba(255,255,255,0.28),
+        0 10px 30px rgba(0,0,0,0.28),
+        0 0 22px rgba(90,160,255,0.18);
+      overflow: hidden;
+    }
+
+    .avatar-btn::before {
+      content: "";
+      position: absolute;
+      inset: 7px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 50% 38%, rgba(255,255,255,0.95) 0 5px, transparent 6px),
+        radial-gradient(circle at 50% 74%, rgba(190,220,255,0.75) 0 10px, transparent 11px),
+        linear-gradient(145deg, rgba(90,160,255,0.38), rgba(255,255,255,0.08));
+      box-shadow: 0 0 20px rgba(110,180,255,0.35);
+    }
+
+    .title-block {
+      text-align: center;
+      line-height: 1.15;
+      padding: 8px 18px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.055);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(18px) saturate(150%);
+      -webkit-backdrop-filter: blur(18px) saturate(150%);
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 650;
+      letter-spacing: 0.02em;
+    }
+
+    .status {
+      margin-top: 3px;
+      font-size: 11px;
+      color: var(--faint);
+    }
+
+    /* 聊天区 */
+    .messages {
+      position: relative;
+      z-index: 3;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 14px 16px 18px;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      scroll-behavior: smooth;
+    }
+
+    .empty {
+      position: absolute;
+      left: 50%;
+      top: 43%;
+      transform: translate(-50%, -50%);
+      width: min(280px, 76vw);
+      text-align: center;
+      color: rgba(230,240,255,0.52);
+      font-size: 14px;
+      line-height: 1.7;
+      pointer-events: none;
+    }
+
+    .msg-row {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      margin: 14px 0;
+    }
+
+    .msg-row.user {
+      align-items: flex-end;
+    }
+
+    .msg-row.assistant {
+      align-items: flex-start;
+    }
+
+    .bubble {
+      max-width: min(76%, 640px);
+      padding: 12px 15px;
+      border-radius: 23px;
+      color: rgba(242,248,255,0.95);
+      font-size: 15px;
+      line-height: 1.58;
+      letter-spacing: 0.01em;
+      white-space: pre-wrap;
+      word-break: break-word;
+      backdrop-filter: blur(26px) saturate(170%);
+      -webkit-backdrop-filter: blur(26px) saturate(170%);
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow:
+        inset 0 1px 1px rgba(255,255,255,0.22),
+        inset 0 -1px 1px rgba(255,255,255,0.05),
+        0 14px 36px rgba(0,0,0,0.24);
+    }
+
+    .assistant .bubble {
+      border-top-left-radius: 10px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.17), rgba(255,255,255,0.065));
+    }
+
+    .user .bubble {
+      border-top-right-radius: 10px;
+      background:
+        linear-gradient(135deg, rgba(80,155,255,0.42), rgba(255,255,255,0.11));
+      box-shadow:
+        inset 0 1px 1px rgba(255,255,255,0.25),
+        0 14px 36px rgba(0,0,0,0.26),
+        0 0 28px rgba(74,150,255,0.14);
+    }
+
+    .time {
+      margin-top: 5px;
+      padding: 0 6px;
+      font-size: 10px;
+      color: rgba(220,235,255,0.32);
+    }
+
+    /* 思考链：在文字上面，可折叠 */
+    .thinking {
+      max-width: min(76%, 640px);
+      margin-bottom: 6px;
+    }
+
+    .thinking-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 27px;
+      padding: 0 10px;
+      border-radius: 999px;
+      color: rgba(224,238,255,0.68);
+      background: rgba(255,255,255,0.065);
+      border: 1px solid rgba(255,255,255,0.115);
+      backdrop-filter: blur(18px) saturate(150%);
+      -webkit-backdrop-filter: blur(18px) saturate(150%);
+      font-size: 12px;
+    }
+
+    .thinking-toggle .chev {
+      opacity: 0.65;
+      font-size: 11px;
+    }
+
+    .thinking-detail {
+      display: none;
+      margin-top: 7px;
+      padding: 9px 11px;
+      border-radius: 16px;
+      color: rgba(224,238,255,0.55);
+      font-size: 12px;
+      line-height: 1.55;
+      background: rgba(255,255,255,0.045);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(16px) saturate(140%);
+      -webkit-backdrop-filter: blur(16px) saturate(140%);
+    }
+
+    .thinking.open .thinking-detail {
+      display: block;
+    }
+
+    .thinking.open .chev {
+      transform: rotate(180deg);
+    }
+
+    .flash {
+      animation: flash 1.2s ease;
+    }
+
+    @keyframes flash {
+      0% { filter: brightness(1.8); }
+      100% { filter: brightness(1); }
+    }
+
+    /* 输入区 */
+    .input-wrap {
+      position: relative;
+      z-index: 4;
+      flex: 0 0 auto;
+      padding: 8px 14px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    }
+
+    .input-glass {
+      min-height: 52px;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      padding: 7px;
+      border-radius: 28px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.065));
+      border: 1px solid rgba(255,255,255,0.18);
+      backdrop-filter: blur(28px) saturate(170%);
+      -webkit-backdrop-filter: blur(28px) saturate(170%);
+      box-shadow:
+        inset 0 1px 1px rgba(255,255,255,0.22),
+        0 18px 44px rgba(0,0,0,0.32);
+    }
+
+    .plus-btn {
+      flex: 0 0 auto;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      color: rgba(238,246,255,0.86);
+      font-size: 26px;
+      line-height: 1;
+      background: rgba(255,255,255,0.075);
+      border: 1px solid rgba(255,255,255,0.11);
+    }
+
+    #chatInput {
+      flex: 1 1 auto;
+      min-width: 0;
+      max-height: 118px;
+      min-height: 38px;
+      resize: none;
+      border: 0;
+      outline: 0;
+      padding: 9px 4px;
+      background: transparent;
+      color: rgba(242,248,255,0.96);
+      font-size: 15px;
+      line-height: 20px;
+    }
+
+    #chatInput::placeholder {
+      color: rgba(220,235,255,0.42);
+    }
+
+    .send-btn {
+      flex: 0 0 auto;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      color: white;
+      font-size: 21px;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(255,255,255,0.95) 0 8%, rgba(140,200,255,0.92) 9% 34%, rgba(58,132,255,0.78) 60%, rgba(48,100,220,0.82) 100%);
+      box-shadow:
+        0 0 16px rgba(100,178,255,0.86),
+        0 0 36px rgba(74,142,255,0.45),
+        inset 0 1px 2px rgba(255,255,255,0.72);
+    }
+
+    .send-btn:active {
+      transform: scale(0.94);
+    }
+
+    /* 侧边栏 */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      background: rgba(0,0,0,0.28);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease;
+    }
+
+    .overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sidebar {
+      position: absolute;
+      z-index: 11;
+      top: 0;
+      left: 0;
+      width: min(340px, 86vw);
+      height: 100%;
+      padding: calc(16px + env(safe-area-inset-top)) 14px calc(16px + env(safe-area-inset-bottom));
+      transform: translateX(-104%);
+      transition: transform .28s cubic-bezier(.22,.8,.24,1);
+      background:
+        linear-gradient(145deg, rgba(12,24,48,0.62), rgba(2,7,18,0.56));
+      border-right: 1px solid rgba(255,255,255,0.14);
+      backdrop-filter: blur(34px) saturate(180%);
+      -webkit-backdrop-filter: blur(34px) saturate(180%);
+      box-shadow:
+        24px 0 60px rgba(0,0,0,0.36),
+        inset -1px 0 1px rgba(255,255,255,0.06);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar.open {
+      transform: translateX(0);
+    }
+
+    .search {
+      flex: 0 0 auto;
+      height: 42px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.13);
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      outline: none;
+      padding: 0 14px;
+      font-size: 14px;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .search::placeholder {
+      color: rgba(220,235,255,0.42);
+    }
+
+    .side-scroll {
+      margin-top: 14px;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 2px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .search-results {
+      display: none;
+      margin-bottom: 14px;
+    }
+
+    .search-results.show {
+      display: block;
+    }
+
+    .result-item,
+    .session-item,
+    .nav-item,
+    .glass-card {
+      border-radius: 18px;
+      background: rgba(255,255,255,0.065);
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .result-item {
+      padding: 10px 11px;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+
+    .result-title {
+      font-size: 13px;
+      color: rgba(240,247,255,0.86);
+      margin-bottom: 4px;
+    }
+
+    .result-text {
+      font-size: 12px;
+      color: rgba(220,235,255,0.48);
+      line-height: 1.45;
+    }
+
+    .side-section {
+      margin-bottom: 14px;
+    }
+
+    .section-head {
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: rgba(235,244,255,0.82);
+      font-size: 13px;
+      font-weight: 650;
+      letter-spacing: 0.03em;
+      padding: 0 2px 0 4px;
+      user-select: none;
+    }
+
+    .section-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .new-window {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      color: rgba(240,247,255,0.95);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      font-size: 18px;
+    }
+
+    .sessions.collapsed {
+      display: none;
+    }
+
+    .session-item {
+      position: relative;
+      padding: 11px 36px 11px 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+
+    .session-item.active {
+      background: rgba(100,170,255,0.16);
+      border-color: rgba(130,190,255,0.28);
+    }
+
+    .session-title {
+      font-size: 13.5px;
+      color: rgba(244,248,255,0.9);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .session-time {
+      margin-top: 4px;
+      font-size: 11px;
+      color: rgba(220,235,255,0.38);
+    }
+
+    .delete-session {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      color: rgba(255,170,185,0.86);
+      background: rgba(255,255,255,0.055);
+      font-size: 15px;
+    }
+
+    .nav-item {
+      width: 100%;
+      margin-bottom: 8px;
+      padding: 12px;
+      color: rgba(238,246,255,0.86);
+      text-align: left;
+      font-size: 14px;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.show {
+      display: block;
+    }
+
+    .back-btn {
+      height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      color: rgba(238,246,255,0.86);
+      background: rgba(255,255,255,0.075);
+      border: 1px solid rgba(255,255,255,0.11);
+      margin-bottom: 12px;
+    }
+
+    .page-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 4px 2px 14px;
+    }
+
+    .glass-card {
+      padding: 13px;
+      margin-bottom: 12px;
+    }
+
+    .label {
+      font-size: 12px;
+      color: rgba(220,235,255,0.48);
+      margin-bottom: 8px;
+    }
+
+    .select,
+    .persona {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,0.12);
+      outline: 0;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.075);
+      color: rgba(240,247,255,0.92);
+      padding: 11px;
+      font-size: 14px;
+    }
+
+    .select option {
+      color: #111827;
+    }
+
+    .persona {
+      min-height: 112px;
+      resize: vertical;
+      line-height: 1.55;
+    }
+
+    .wall-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 9px;
+    }
+
+    .wall {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.13);
+      color: rgba(255,255,255,0.9);
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      background: rgba(255,255,255,0.07);
+    }
+
+    .wall.active {
+      outline: 2px solid rgba(120,190,255,0.72);
+      box-shadow: 0 0 24px rgba(90,160,255,0.28);
+    }
+
+    .wall.deep {
+      background:
+        radial-gradient(circle at 50% 30%, rgba(90,160,255,0.42), transparent 45%),
+        linear-gradient(180deg, #071936, #020711);
+    }
+
+    .wall.ocean {
+      background:
+        radial-gradient(circle at 42% 70%, rgba(66,190,255,0.25), transparent 45%),
+        linear-gradient(180deg, #04152d, #001923);
+    }
+
+    .wall.night {
+      background:
+        radial-gradient(circle at 70% 20%, rgba(255,255,255,0.26), transparent 16%),
+        linear-gradient(180deg, #081229, #00030a);
+    }
+
+    .wall.mine {
+      background-size: cover;
+      background-position: center;
+    }
+
+    .coming {
+      margin-top: 20px;
+      padding: 28px 16px;
+      text-align: center;
+      color: rgba(225,238,255,0.58);
+      line-height: 1.7;
+    }
+
+    @media (min-width: 760px) {
+      .messages {
+        padding-left: max(18px, calc((100vw - 760px) / 2));
+        padding-right: max(18px, calc((100vw - 760px) / 2));
+      }
+
+      .input-wrap {
+        padding-left: max(14px, calc((100vw - 760px) / 2));
+        padding-right: max(14px, calc((100vw - 760px) / 2));
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <div class="bg"></div>
+    <div id="wallpaperImg" class="wallpaper-img"></div>
+    <div class="star-core"></div>
+
+    <header class="topbar">
+      <button class="avatar-btn" id="avatarBtn" aria-label="打开侧边栏"></button>
+      <div class="title-block">
+        <div class="title">克</div>
+        <div class="status" id="topStatus">在线</div>
+      </div>
+    </header>
+
+    <main class="messages" id="messages"></main>
+
+    <footer class="input-wrap">
+      <div class="input-glass">
+        <button class="plus-btn" id="plusBtn">＋</button>
+        <textarea id="chatInput" rows="1" placeholder="想和克说点什么……"></textarea>
+        <button class="send-btn" id="sendBtn" aria-label="发送">✦</button>
+      </div>
+    </footer>
+
+    <div class="overlay" id="overlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+      <input class="search" id="searchInput" placeholder="Search chats" />
+
+      <div class="side-scroll">
+        <div class="search-results" id="searchResults"></div>
+
+        <div class="page show" id="homePage">
+          <section class="side-section">
+            <div class="section-head">
+              <div class="section-left" id="toggleWindows">
+                <span>Windows</span>
+                <span id="windowChevron">▾</span>
+              </div>
+              <button class="new-window" id="newWindowBtn">＋</button>
+            </div>
+            <div class="sessions" id="sessionList"></div>
+          </section>
+
+          <button class="nav-item" id="memoryBtn">Memory</button>
+          <button class="nav-item" id="settingsBtn">Settings</button>
+        </div>
+
+        <div class="page" id="memoryPage">
+          <button class="back-btn" data-back>‹ Back</button>
+          <div class="page-title">Memory</div>
+          <div class="glass-card coming">
+            即将上线<br />
+            这里以后会放克的记忆库界面。
+          </div>
+        </div>
+
+        <div class="page" id="settingsPage">
+          <button class="back-btn" data-back>‹ Back</button>
+          <div class="page-title">Settings</div>
+
+          <div class="glass-card">
+            <div class="label">Model</div>
+            <select class="select" id="modelSelect">
+              <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
+              <option value="claude-3-7-sonnet">Claude 3.7 Sonnet</option>
+              <option value="claude-sonnet-4">Claude Sonnet 4</option>
+              <option value="claude-opus-4">Claude Opus 4</option>
+            </select>
+          </div>
+
+          <div class="glass-card">
+            <div class="label">Wallpaper</div>
+            <div class="wall-grid">
+              <button class="wall deep" data-wall="deep">Deep</button>
+              <button class="wall ocean" data-wall="ocean">Ocean</button>
+              <button class="wall night" data-wall="night">Night</button>
+              <button class="wall mine" id="mineWall" data-wall="mine">我的</button>
+              <button class="wall" id="uploadWall">＋上传</button>
+            </div>
+            <input type="file" id="wallFile" accept="image/*" hidden />
+          </div>
+
+          <div class="glass-card">
+            <div class="label">Ke Persona</div>
+            <textarea class="persona" id="personaInput" placeholder="写下克的人设、说话方式、边界和偏好……"></textarea>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "ke_chat_frontend_v1";
+
+    const $ = (sel) => document.querySelector(sel);
+
+    const els = {
+      app: $("#app"),
+      messages: $("#messages"),
+      input: $("#chatInput"),
+      send: $("#sendBtn"),
+      plus: $("#plusBtn"),
+      avatar: $("#avatarBtn"),
+      sidebar: $("#sidebar"),
+      overlay: $("#overlay"),
+      searchInput: $("#searchInput"),
+      searchResults: $("#searchResults"),
+      homePage: $("#homePage"),
+      memoryPage: $("#memoryPage"),
+      settingsPage: $("#settingsPage"),
+      sessionList: $("#sessionList"),
+      newWindowBtn: $("#newWindowBtn"),
+      toggleWindows: $("#toggleWindows"),
+      windowChevron: $("#windowChevron"),
+      memoryBtn: $("#memoryBtn"),
+      settingsBtn: $("#settingsBtn"),
+      modelSelect: $("#modelSelect"),
+      personaInput: $("#personaInput"),
+      wallpaperImg: $("#wallpaperImg"),
+      wallFile: $("#wallFile"),
+      mineWall: $("#mineWall"),
+      uploadWall: $("#uploadWall"),
+      topStatus: $("#topStatus")
+    };
+
+    let state = loadState();
+    let thinkingOpen = {};
+    let windowsCollapsed = false;
+
+    function defaultState() {
+      const id = uid();
+      return {
+        activeId: id,
+        model: "claude-3-5-sonnet",
+        wallpaper: "deep",
+        customWallpaper: "",
+        persona: "克：亲密、克制、安静、温柔。说话自然，不夸张，不角色扮演腔。",
+        sessions: [
+          {
+            id,
+            title: "New Window",
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            messages: []
+          }
+        ]
+      };
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return defaultState();
+        const parsed = JSON.parse(raw);
+        if (!parsed.sessions || !parsed.sessions.length) return defaultState();
+        return parsed;
+      } catch {
+        return defaultState();
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function uid() {
+      return "id_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    }
+
+    function activeSession() {
+      return state.sessions.find(s => s.id === state.activeId) || state.sessions[0];
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function relativeTime(ts) {
+      const diff = Date.now() - ts;
+      const min = Math.floor(diff / 60000);
+      const hr = Math.floor(diff / 3600000);
+      const day = Math.floor(diff / 86400000);
+      if (min < 1) return "now";
+      if (min < 60) return `${min}m ago`;
+      if (hr < 24) return `${hr}h ago`;
+      if (day < 7) return `${day}d ago`;
+      return new Date(ts).toLocaleDateString();
+    }
+
+    function timeText(ts) {
+      return new Date(ts).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    function renderAll() {
+      applySettings();
+      renderMessages();
+      renderSessions();
+      renderWallpaperButtons();
+    }
+
+    function renderMessages(scrollToBottom = false) {
+      const s = activeSession();
+      const msgs = s.messages;
+
+      if (!msgs.length) {
+        els.messages.innerHTML = `
+          <div class="empty">
+            <div style="font-size:22px;margin-bottom:8px;">✦</div>
+            克在这里。<br/>
+            说点什么吧。
+          </div>
+        `;
+        return;
+      }
+
+      els.messages.innerHTML = msgs.map(msg => {
+        const isAssistant = msg.role === "assistant";
+        const thinking = isAssistant ? `
+          <div class="thinking ${thinkingOpen[msg.id] ? "open" : ""}" data-thinking="${msg.id}">
+            <button class="thinking-toggle" data-toggle-thinking="${msg.id}">
+              <span>思考中</span>
+              <span style="opacity:.45;">·</span>
+              <span>${thinkingOpen[msg.id] ? "已展开" : "已折叠"}</span>
+              <span class="chev">▾</span>
+            </button>
+            <div class="thinking-detail">
+              ${(msg.thinking || ["正在理解你的意思", "正在整理回复"]).map(x => `• ${escapeHtml(x)}`).join("<br/>")}
+            </div>
+          </div>
+        ` : "";
+
+        return `
+          <div class="msg-row ${msg.role}" data-msg-id="${msg.id}">
+            ${thinking}
+            <div class="bubble">${escapeHtml(msg.text)}</div>
+            <div class="time">${timeText(msg.createdAt)}</div>
+          </div>
+        `;
+      }).join("");
+
+      if (scrollToBottom) {
+        requestAnimationFrame(() => {
+          els.messages.scrollTop = els.messages.scrollHeight;
+        });
+      }
+    }
+
+    function renderSessions() {
+      const list = [...state.sessions].sort((a, b) => b.updatedAt - a.updatedAt);
+
+      els.sessionList.classList.toggle("collapsed", windowsCollapsed);
+      els.windowChevron.textContent = windowsCollapsed ? "▸" : "▾";
+
+      els.sessionList.innerHTML = list.map(s => `
+        <div class="session-item ${s.id === state.activeId ? "active" : ""}" data-session="${s.id}">
+          <div class="session-title">${escapeHtml(s.title || "New Window")}</div>
+          <div class="session-time">${relativeTime(s.updatedAt)}</div>
+          <button class="delete-session" data-delete-session="${s.id}">×</button>
+        </div>
+      `).join("");
+    }
+
+    function sendMessage() {
+      const text = els.input.value.trim();
+      if (!text) return;
+
+      const s = activeSession();
+      const now = Date.now();
+
+      s.messages.push({
+        id: uid(),
+        role: "user",
+        text,
+        createdAt: now
+      });
+
+      if (!s.title || s.title === "New Window") {
+        s.title = text.slice(0, 22);
+      }
+
+      s.updatedAt = now;
+      els.input.value = "";
+      autoResizeInput();
+
+      saveState();
+      renderAll();
+      renderMessages(true);
+
+      fakeAssistantReply(text);
+    }
+
+    function fakeAssistantReply(userText) {
+      const s = activeSession();
+      els.topStatus.textContent = "思考中…";
+
+      setTimeout(() => {
+        const now = Date.now();
+        const reply = makeReply(userText);
+
+        s.messages.push({
+          id: uid(),
+          role: "assistant",
+          text: reply,
+          createdAt: now,
+          thinking: [
+            "正在理解你的语气和重点",
+            "正在保持克制的蓝黑白聊天氛围",
+            "正在组织一段自然的回复"
+          ]
+        });
+
+        s.updatedAt = now;
+        els.topStatus.textContent = "在线";
+        saveState();
+        renderAll();
+        renderMessages(true);
+      }, 520);
+    }
+
+    function makeReply(text) {
+      if (text.includes("晚安")) {
+        return "晚安。我在这儿，灯会慢慢暗下去，你可以安心睡。";
+      }
+      if (text.includes("累") || text.includes("难受")) {
+        return "过来一点。先不用解释，也不用马上解决什么。你已经撑了一阵了，我陪你缓一会儿。";
+      }
+      if (text.includes("你好") || text.includes("在吗")) {
+        return "我在。";
+      }
+      return "嗯，我听到了。你可以继续说，我会在这里慢慢接住。";
+    }
+
+    function createWindow() {
+      const id = uid();
+      state.sessions.unshift({
+        id,
+        title: "New Window",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        messages: []
+      });
+      state.activeId = id;
+      saveState();
+      renderAll();
+      closeSidebar();
+    }
+
+    function deleteWindow(id) {
+      if (state.sessions.length <= 1) {
+        state.sessions[0].messages = [];
+        state.sessions[0].title = "New Window";
+        state.sessions[0].updatedAt = Date.now();
+        saveState();
+        renderAll();
+        return;
+      }
+
+      state.sessions = state.sessions.filter(s => s.id !== id);
+      if (state.activeId === id) {
+        state.activeId = state.sessions[0].id;
+      }
+      saveState();
+      renderAll();
+    }
+
+    function openSidebar() {
+      els.sidebar.classList.add("open");
+      els.overlay.classList.add("show");
+      els.searchInput.focus({ preventScroll: true });
+    }
+
+    function closeSidebar() {
+      els.sidebar.classList.remove("open");
+      els.overlay.classList.remove("show");
+      els.searchInput.blur();
+    }
+
+    function showPage(name) {
+      els.homePage.classList.remove("show");
+      els.memoryPage.classList.remove("show");
+      els.settingsPage.classList.remove("show");
+
+      if (name === "memory") els.memoryPage.classList.add("show");
+      else if (name === "settings") els.settingsPage.classList.add("show");
+      else els.homePage.classList.add("show");
+    }
+
+    function searchChats(q) {
+      q = q.trim().toLowerCase();
+
+      if (!q) {
+        els.searchResults.classList.remove("show");
+        els.searchResults.innerHTML = "";
+        return;
+      }
+
+      const results = [];
+
+      for (const s of state.sessions) {
+        for (const m of s.messages) {
+          if (m.text.toLowerCase().includes(q)) {
+            results.push({
+              sessionId: s.id,
+              msgId: m.id,
+              title: s.title,
+              text: m.text
+            });
+          }
+        }
+      }
+
+      els.searchResults.classList.add("show");
+      els.searchResults.innerHTML = results.length
+        ? results.slice(0, 30).map(r => `
+          <div class="result-item" data-result-session="${r.sessionId}" data-result-msg="${r.msgId}">
+            <div class="result-title">${escapeHtml(r.title || "New Window")}</div>
+            <div class="result-text">${escapeHtml(r.text.slice(0, 72))}</div>
+          </div>
+        `).join("")
+        : `<div class="glass-card" style="color:rgba(220,235,255,.45);font-size:13px;">No results</div>`;
+    }
+
+    function jumpToMessage(sessionId, msgId) {
+      state.activeId = sessionId;
+      saveState();
+      renderAll();
+      showPage("home");
+      closeSidebar();
+
+      requestAnimationFrame(() => {
+        const node = document.querySelector(`[data-msg-id="${msgId}"]`);
+        if (node) {
+          node.scrollIntoView({ block: "center", behavior: "smooth" });
+          node.classList.add("flash");
+          setTimeout(() => node.classList.remove("flash"), 1300);
+        }
+      });
+    }
+
+    function applySettings() {
+      els.modelSelect.value = state.model || "claude-3-5-sonnet";
+      els.personaInput.value = state.persona || "";
+
+      if (state.wallpaper === "mine" && state.customWallpaper) {
+        els.wallpaperImg.style.display = "block";
+        els.wallpaperImg.style.backgroundImage = `url(${state.customWallpaper})`;
+        els.mineWall.style.backgroundImage = `url(${state.customWallpaper})`;
+      } else {
+        els.wallpaperImg.style.display = "none";
+        els.wallpaperImg.style.backgroundImage = "";
+        if (state.customWallpaper) {
+          els.mineWall.style.backgroundImage = `url(${state.customWallpaper})`;
+        }
+      }
+
+      document.body.dataset.wallpaper = state.wallpaper || "deep";
+    }
+
+    function renderWallpaperButtons() {
+      document.querySelectorAll("[data-wall]").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.wall === state.wallpaper);
+      });
+    }
+
+    function autoResizeInput() {
+      els.input.style.height = "auto";
+      els.input.style.height = Math.min(118, els.input.scrollHeight) + "px";
+    }
+
+    function setAppHeight() {
+      const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      els.app.style.height = h + "px";
+    }
+
+    els.avatar.addEventListener("click", openSidebar);
+    els.overlay.addEventListener("click", closeSidebar);
+    els.send.addEventListener("click", sendMessage);
+    els.newWindowBtn.addEventListener("click", createWindow);
+
+    els.plus.addEventListener("click", () => {
+      els.input.focus();
+    });
+
+    els.input.addEventListener("input", autoResizeInput);
+
+    els.input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    els.toggleWindows.addEventListener("click", () => {
+      windowsCollapsed = !windowsCollapsed;
+      renderSessions();
+    });
+
+    els.memoryBtn.addEventListener("click", () => showPage("memory"));
+    els.settingsBtn.addEventListener("click", () => showPage("settings"));
+
+    document.addEventListener("click", (e) => {
+      const back = e.target.closest("[data-back]");
+      if (back) showPage("home");
+
+      const sessionEl = e.target.closest("[data-session]");
+      if (sessionEl && !e.target.closest("[data-delete-session]")) {
+        state.activeId = sessionEl.dataset.session;
+        saveState();
+        renderAll();
+        closeSidebar();
+      }
+
+      const del = e.target.closest("[data-delete-session]");
+      if (del) {
+        e.stopPropagation();
+        deleteWindow(del.dataset.deleteSession);
+      }
+
+      const toggle = e.target.closest("[data-toggle-thinking]");
+      if (toggle) {
+        const id = toggle.dataset.toggleThinking;
+        thinkingOpen[id] = !thinkingOpen[id];
+        renderMessages(false);
+      }
+
+      const result = e.target.closest("[data-result-session]");
+      if (result) {
+        jumpToMessage(result.dataset.resultSession, result.dataset.resultMsg);
+      }
+
+      const wall = e.target.closest("[data-wall]");
+      if (wall) {
+        const val = wall.dataset.wall;
+        if (val === "mine" && !state.customWallpaper) {
+          els.wallFile.click();
+          return;
+        }
+        state.wallpaper = val;
+        saveState();
+        renderAll();
+      }
+    });
+
+    els.searchInput.addEventListener("input", () => {
+      searchChats(els.searchInput.value);
+    });
+
+    els.modelSelect.addEventListener("change", () => {
+      state.model = els.modelSelect.value;
+      saveState();
+    });
+
+    els.personaInput.addEventListener("input", () => {
+      state.persona = els.personaInput.value;
+      saveState();
+    });
+
+    els.uploadWall.addEventListener("click", () => {
+      els.wallFile.click();
+    });
+
+    els.wallFile.addEventListener("change", () => {
+      const file = els.wallFile.files && els.wallFile.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        state.customWallpaper = reader.result;
+        state.wallpaper = "mine";
+        saveState();
+        renderAll();
+      };
+      reader.readAsDataURL(file);
+    });
+
+    window.addEventListener("resize", setAppHeight);
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", setAppHeight);
+      window.visualViewport.addEventListener("scroll", setAppHeight);
+    }
+
+    setAppHeight();
+    renderAll();
+  </script>
+</body>
+</html>
